@@ -95,35 +95,35 @@ resource "aws_subnet" "TheDivineMedSpa-sb-1" {
   }
 }
 
-# resource "aws_subnet" "TheDivineMedSpa-sb-private-1" {
-#   vpc_id            = aws_vpc.TheDivineMedSpa-VPC.id
-#   cidr_block        = "192.168.0.128/26"
-#   availability_zone = "us-west-1b"
+resource "aws_subnet" "TheDivineMedSpa-sb-private-1" {
+  vpc_id            = aws_vpc.TheDivineMedSpa-VPC.id
+  cidr_block        = "192.168.0.128/26"
+  availability_zone = "us-west-1b"
 
-#   tags = {
-#     Name = "TheDivineMedSpa-sb-private-1"
-#   }
-# }
+  tags = {
+    Name = "TheDivineMedSpa-sb-private-1"
+  }
+}
 
-# resource "aws_subnet" "TheDivineMedSpa-sb-private-2" {
-#   vpc_id            = aws_vpc.TheDivineMedSpa-VPC.id
-#   cidr_block        = "192.168.0.192/26"
-#   availability_zone = "us-west-1c"
+resource "aws_subnet" "TheDivineMedSpa-sb-private-2" {
+  vpc_id            = aws_vpc.TheDivineMedSpa-VPC.id
+  cidr_block        = "192.168.0.192/26"
+  availability_zone = "us-west-1c"
 
-#   tags = {
-#     Name = "TheDivineMedSpa-sb-private-2"
-#   }
-# }
+  tags = {
+    Name = "TheDivineMedSpa-sb-private-2"
+  }
+}
 
 # Subnet Group
-# resource "aws_db_subnet_group" "TheDivineMedSpa-db-subnet-group-1" {
-#   name       = "main"
-#   subnet_ids = [aws_subnet.TheDivineMedSpa-sb-private-1.id, aws_subnet.TheDivineMedSpa-sb-private-2.id]
+resource "aws_db_subnet_group" "TheDivineMedSpa-db-subnet-group-1" {
+  name       = "main"
+  subnet_ids = [aws_subnet.TheDivineMedSpa-sb-private-1.id, aws_subnet.TheDivineMedSpa-sb-private-2.id]
 
-#   tags = {
-#     Name = "TheDivineMedSpa-db-subnet-group-1"
-#   }
-# }
+  tags = {
+    Name = "TheDivineMedSpa-db-subnet-group-1"
+  }
+}
 
 # Network Access Control List (Firewall)
 resource "aws_network_acl" "TheDivineMedSpa-nacl" {
@@ -288,42 +288,42 @@ resource "aws_security_group" "TheDivineMedSpa-sg-1" {
   }
 }
 
-# resource "aws_security_group" "TheDivineMedSpa-sg-2" {
-#   vpc_id      = aws_vpc.TheDivineMedSpa-VPC.id
-#   name        = "TheDivineMedSpa-sg-2"
-#   description = "Security Group for The Divine Med Spa. Allows all HTTP/SSH inbound traffic and HTTPS outbound traffic."
+resource "aws_security_group" "TheDivineMedSpa-sg-2" {
+  vpc_id      = aws_vpc.TheDivineMedSpa-VPC.id
+  name        = "TheDivineMedSpa-sg-2"
+  description = "Security Group for The Divine Med Spa. Allows all HTTP/SSH inbound traffic and HTTPS outbound traffic."
 
-#   # Inbound
-#   ingress = [{
-#     cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-#     description      = "Traffic from EC2"
-#     from_port        = 5432
-#     to_port          = 5432
-#     protocol         = "tcp"
-#     ipv6_cidr_blocks = null
-#     prefix_list_ids  = null
-#     security_groups  = null
-#     self             = null
-#   }]
+  # Inbound
+  ingress = [{
+    cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
+    description      = "Traffic from EC2"
+    from_port        = 5432
+    to_port          = 5432
+    protocol         = "tcp"
+    ipv6_cidr_blocks = null
+    prefix_list_ids  = null
+    security_groups  = null
+    self             = null
+  }]
 
-#   # Outbound
-#   egress = [{
-#     cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-#     description      = "HTTPS to VPC"
-#     from_port        = 5432
-#     to_port          = 5432
-#     protocol         = "tcp"
-#     ipv6_cidr_blocks = null
-#     prefix_list_ids  = null
-#     security_groups  = null
-#     self             = null
-#   }]
-# }
+  # Outbound
+  egress = [{
+    cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
+    description      = "HTTPS to VPC"
+    from_port        = 5432
+    to_port          = 5432
+    protocol         = "tcp"
+    ipv6_cidr_blocks = null
+    prefix_list_ids  = null
+    security_groups  = null
+    self             = null
+  }]
+}
 
-# resource "aws_db_parameter_group" "TheDivineMedSpa-db-pg" {
-#   name   = "rds-postgres"
-#   family = "postgres13"
-# }
+resource "aws_db_parameter_group" "TheDivineMedSpa-db-pg" {
+  name   = "rds-postgres"
+  family = "postgres13"
+}
 
 resource "aws_key_pair" "deployer" {
   key_name   = "ec2_instance_key_pair_thedivinemedspa"
@@ -346,41 +346,41 @@ resource "aws_instance" "TheDivineMedSpa-web" {
 }
 
 # Database
-# resource "aws_db_instance" "TheDivineMedSpa-db" {
-#   allocated_storage      = 5
-#   max_allocated_storage  = 100
-#   engine                 = "postgres"
-#   engine_version         = "13.2"
-#   instance_class         = "db.t3.micro"
-#   name                   = "strapiheadlessdb"
-#   username               = "main"
-#   password               = "Xh~b`=Db7X9;XeVw"
-#   parameter_group_name   = aws_db_parameter_group.TheDivineMedSpa-db-pg.name
-#   port                   = 5432
-#   skip_final_snapshot    = true
-#   vpc_security_group_ids = [aws_security_group.TheDivineMedSpa-sg-2.id]
+resource "aws_db_instance" "TheDivineMedSpa-db" {
+  allocated_storage      = 5
+  max_allocated_storage  = 100
+  engine                 = "postgres"
+  engine_version         = "13.2"
+  instance_class         = "db.t3.micro"
+  name                   = "strapiheadlessdb"
+  username               = "main"
+  password               = "Xh~b`=Db7X9;XeVw"
+  parameter_group_name   = aws_db_parameter_group.TheDivineMedSpa-db-pg.name
+  port                   = 5432
+  skip_final_snapshot    = true
+  vpc_security_group_ids = [aws_security_group.TheDivineMedSpa-sg-2.id]
 
-#   multi_az             = false
-#   db_subnet_group_name = aws_db_subnet_group.TheDivineMedSpa-db-subnet-group-1.name
+  multi_az             = false
+  db_subnet_group_name = aws_db_subnet_group.TheDivineMedSpa-db-subnet-group-1.name
 
-#   tags = {
-#     Name = "TheDivineMedSpa-db"
-#   }
-# }
+  tags = {
+    Name = "TheDivineMedSpa-db"
+  }
+}
 
 # S3 Bucket
-# resource "aws_s3_bucket" "TheDivineMedSpa-bucket" {
-#   bucket = "the-divine-med-spa"
-#   acl    = "private"
+resource "aws_s3_bucket" "TheDivineMedSpa-bucket" {
+  bucket = "the-divine-med-spa"
+  acl    = "private"
 
-#   cors_rule {
-#     allowed_headers = ["*"]
-#     allowed_methods = ["GET", "PUT", "POST", "DELETE"]
-#     allowed_origins = ["https://thedivinemedspa.com"]
-#   }
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE"]
+    allowed_origins = ["https://thedivinemedspa.com"]
+  }
 
-#   tags = {
-#     Name        = "TheDivineMedSpa-bucket"
-#     Environment = "Prod"
-#   }
-# }
+  tags = {
+    Name        = "TheDivineMedSpa-bucket"
+    Environment = "Prod"
+  }
+}
