@@ -1,4 +1,6 @@
-provider "aws" {}
+provider "aws" {
+  region = "us-west-1"
+}
 
 # VPC
 resource "aws_vpc" "TheDivineMedSpa-VPC" {
@@ -164,18 +166,8 @@ resource "aws_network_acl" "TheDivineMedSpa-nacl" {
     ipv6_cidr_block = null
     }, {
     rule_no         = 400
-    from_port       = 3389
-    to_port         = 3389
-    cidr_block      = "0.0.0.0/0"
-    protocol        = "tcp"
-    action          = "allow"
-    icmp_code       = null
-    icmp_type       = null
-    ipv6_cidr_block = null
-    }, {
-    rule_no         = 500
     from_port       = 32768
-    to_port         = 65535
+    to_port         = 61000
     cidr_block      = "0.0.0.0/0"
     protocol        = "tcp"
     action          = "allow"
@@ -186,10 +178,30 @@ resource "aws_network_acl" "TheDivineMedSpa-nacl" {
 
   egress = [{
     rule_no         = 100
-    from_port       = 0
-    to_port         = 0
+    from_port       = 80
+    to_port         = 80
     cidr_block      = "0.0.0.0/0"
-    protocol        = -1
+    protocol        = "tcp"
+    action          = "allow"
+    icmp_code       = null
+    icmp_type       = null
+    ipv6_cidr_block = null
+    }, {
+    rule_no         = 200
+    from_port       = 443
+    to_port         = 443
+    cidr_block      = "0.0.0.0/0"
+    protocol        = "tcp"
+    action          = "allow"
+    icmp_code       = null
+    icmp_type       = null
+    ipv6_cidr_block = null
+    }, {
+    rule_no         = 300
+    from_port       = 1024
+    to_port         = 65535
+    cidr_block      = "0.0.0.0/0"
+    protocol        = "tcp"
     action          = "allow"
     icmp_code       = null
     icmp_type       = null
@@ -240,7 +252,7 @@ resource "aws_security_group" "TheDivineMedSpa-sg-1" {
     self             = null
     }, {
     cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-    description      = "DB from PostgreSQL RDS"
+    description      = "EC2 from RDS"
     from_port        = 5432
     to_port          = 5432
     protocol         = "tcp"
@@ -253,7 +265,7 @@ resource "aws_security_group" "TheDivineMedSpa-sg-1" {
   # Outbound
   egress = [{
     cidr_blocks      = ["0.0.0.0/0"]
-    description      = "HTTP to VPC"
+    description      = "HTTP from VPC"
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
@@ -263,7 +275,7 @@ resource "aws_security_group" "TheDivineMedSpa-sg-1" {
     self             = null
     }, {
     cidr_blocks      = ["0.0.0.0/0"]
-    description      = "HTTPS to VPC"
+    description      = "HTTPS from VPC"
     from_port        = 443
     to_port          = 443
     protocol         = "tcp"
@@ -272,8 +284,8 @@ resource "aws_security_group" "TheDivineMedSpa-sg-1" {
     security_groups  = null
     self             = null
     }, {
-    cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-    description      = "DB to PostgreSQL RDS"
+    cidr_blocks      = ["192.168.0.128/26", "192.168.0.192/26"]
+    description      = "EC2 from RDS"
     from_port        = 5432
     to_port          = 5432
     protocol         = "tcp"
@@ -295,11 +307,11 @@ resource "aws_security_group" "TheDivineMedSpa-sg-2" {
 
   # Inbound
   ingress = [{
-    cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-    description      = "Traffic from EC2"
-    from_port        = 5432
-    to_port          = 5432
-    protocol         = "tcp"
+    cidr_blocks      = ["192.168.0.0/25"]
+    description      = "EC2 to RDS"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
     ipv6_cidr_blocks = null
     prefix_list_ids  = null
     security_groups  = null
@@ -309,7 +321,7 @@ resource "aws_security_group" "TheDivineMedSpa-sg-2" {
   # Outbound
   egress = [{
     cidr_blocks      = ["192.168.1.128/26", "192.168.1.192/26"]
-    description      = "HTTPS to VPC"
+    description      = "RDS to EC2"
     from_port        = 5432
     to_port          = 5432
     protocol         = "tcp"
@@ -318,6 +330,10 @@ resource "aws_security_group" "TheDivineMedSpa-sg-2" {
     security_groups  = null
     self             = null
   }]
+
+  tags = {
+    Name = "TheDivineMedSpa-sg-2"
+  }
 }
 
 resource "aws_db_parameter_group" "TheDivineMedSpa-db-pg" {
@@ -333,7 +349,7 @@ resource "aws_key_pair" "deployer" {
 # EC2 Instance
 resource "aws_instance" "TheDivineMedSpa-web" {
   ami                         = "ami-04468e03c37242e1e"
-  instance_type               = "t2.micro"
+  instance_type               = "t2.small"
   subnet_id                   = aws_subnet.TheDivineMedSpa-sb-1.id
   vpc_security_group_ids      = [aws_security_group.TheDivineMedSpa-sg-1.id]
   key_name                    = aws_key_pair.deployer.key_name
@@ -347,6 +363,7 @@ resource "aws_instance" "TheDivineMedSpa-web" {
 
 # Database
 resource "aws_db_instance" "TheDivineMedSpa-db" {
+  identifier             = "thedivinemedspa-db"
   allocated_storage      = 5
   max_allocated_storage  = 100
   engine                 = "postgres"
